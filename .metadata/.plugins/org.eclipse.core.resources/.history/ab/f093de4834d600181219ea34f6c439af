@@ -1,0 +1,43 @@
+package evnts;
+import javax.swing.event.MouseInputAdapter;
+import java.applet.Applet;
+import java.awt.*;
+import java.awt.event.*;
+@SuppressWarnings("deprecation")
+public class Event extends Applet {
+int x=0, y=0;
+public Event() {
+// обработчик события от мыши
+MouseInputAdapter pm;
+pm = new MouseInputAdapter() {
+public void mousePressed(MouseEvent e) {
+x=e.getX(); y=e.getY();
+System.out.println(x);
+repaint();
+}};
+this.addMouseListener(pm);
+// обработчик события от клавиатуры
+KeyAdapter pk;
+pk = new KeyAdapter(){
+public void keyPressed(KeyEvent e) {
+System.out.println(e);
+int keyCode = e.getKeyCode();
+switch(keyCode) {
+case KeyEvent.VK_DOWN:
+y = y + 5; repaint(); break;
+case KeyEvent.VK_UP:
+y = y - 5; repaint(); break;
+case KeyEvent.VK_RIGHT:
+x = x + 5; repaint(); break;
+case KeyEvent.VK_LEFT:
+x = x - 5; repaint(); break;
+}
+}
+};
+this.addKeyListener(pk);
+}
+public void init() { }
+public void paint (Graphics g) {
+g.drawString("Applet with Events",x, y);
+}
+}

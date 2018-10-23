@@ -1,0 +1,57 @@
+package double_buffer;
+
+import java.applet.Applet;
+import java.awt.*;
+import java.net.*;
+@SuppressWarnings({ "deprecation", "serial" })
+public class QuickPicture extends Applet {
+Image pic;
+boolean picLoaded=false; // проверка загрузки изображения
+private String m_FileName = "simple.gif";
+private final String PARAM_String_1 = "fileName";
+int x=0, y=0;
+Image offScreenImage;
+public void init(){
+String param;
+param = getParameter(PARAM_String_1);
+if (param != null) m_FileName = param;
+pic=getImage(getDocumentBase(), m_FileName);
+resize(320, 240);
+}
+public void paint (Graphics g){
+// создание виртуального экрана
+int width = getSize().width;
+int height = getSize().height;
+offScreenImage=createImage(width,height);
+// получение его контекста
+Graphics offScreenGraphics= offScreenImage.getGraphics();
+// вывод изображения на виртуальный экран
+offScreenGraphics.drawImage(pic,x,y,this);
+if(!picLoaded) {
+// 4-м параметром в drawImage() передается null.
+// Он не позволяет функции вызывать метод imageUpdate()
+// в процессе вывода
+g.drawImage(offScreenImage,0,0,null);
+showStatus("Done");
+}
+else {
+showStatus("Loading image");
+}
+}
+/* Каждый раз, когда апплет вызывает метод drawImage(), он создает поток, вызывающий метод imageUpdate(), который можно переопределить в классе апплета и использовать для того, чтобы определить, какая часть изображения загружена в память.*/
+public boolean imageUpdate(Image img, int infoflags,int x, int y,int w, int h) {
+if(infoflags==ALLBITS) {
+picLoaded=true; // изображение загружено полностью
+repaint(); // перерисовать окно апплета
+return false; // больше метод imageUpdate не вызывать
+}
+return true; // изображение загружено не полностью
+}
+public void update(Graphics g)
+{
+
+paint(g);
+}
+
+
+}
