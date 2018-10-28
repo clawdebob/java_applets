@@ -6,6 +6,7 @@ import java.awt.event.KeyEvent;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -19,9 +20,11 @@ private Image offScreenImage;
 private final Random random = new Random();
 private boolean timerhidden=false;
 private Image []sprites=new Image [6];
-private Image []bsprites=new Image [4];
+private Image []bsprites=new Image [9];
 private ArrayList<Car> cars=new ArrayList<Car>();
 private ArrayList<Bike> bikes=new ArrayList<Bike>();
+private HashMap<Integer,Double> bbirth = new HashMap<Integer,Double>();
+private HashMap<Integer,Double> cbirth = new HashMap<Integer,Double>();
 private static int scounter=0;
 private boolean active=true;
 private class Updater extends TimerTask {
@@ -60,6 +63,12 @@ public Habitat() {
 		case KeyEvent.VK_E:
 			m_timer.cancel();
 			active=false;
+			for(int c=1;c<=cbirth.size();c++) {
+				System.out.println("Машина №"+c+" Время содания:"+cbirth.get(c));
+			}
+			for(int c=1;c<=bbirth.size();c++) {
+				System.out.println("Мотоцикл №"+c+" Время содания:"+bbirth.get(c));
+			}
 			repaint(); 
 			break;
 		case KeyEvent.VK_B:
@@ -79,16 +88,21 @@ public Habitat(boolean viaFrame) {
 public void init() {
 	resize(1245, 960);
 	try {
-		sprites[0]=getImage(new URL(getDocumentBase(),"sedan.jpg"));
-		sprites[1]=getImage(new URL(getDocumentBase(),"compact.jpg"));
-		sprites[2]=getImage(new URL(getDocumentBase(),"taxi.jpg"));
+		sprites[0]=getImage(new URL(getDocumentBase(),"sedan.png"));
+		sprites[1]=getImage(new URL(getDocumentBase(),"compact.png"));
+		sprites[2]=getImage(new URL(getDocumentBase(),"taxi.png"));
 		sprites[3]=getImage(new URL(getDocumentBase(),"ambulance.jpg"));
-		sprites[4]=getImage(new URL(getDocumentBase(),"jeep.jpg"));
-		sprites[5]=getImage(new URL(getDocumentBase(),"pickup.jpg"));
-		bsprites[0]=getImage(new URL(getDocumentBase(),"moped.jpg"));
-		bsprites[1]=getImage(new URL(getDocumentBase(),"nrg.jpg"));
-		bsprites[2]=getImage(new URL(getDocumentBase(),"sanchez.jpg"));
-		bsprites[3]=getImage(new URL(getDocumentBase(),"ultra.jpg"));
+		sprites[4]=getImage(new URL(getDocumentBase(),"jeep.png"));
+		sprites[5]=getImage(new URL(getDocumentBase(),"pickup.png"));
+		bsprites[0]=getImage(new URL(getDocumentBase(),"moped.png"));
+		bsprites[1]=getImage(new URL(getDocumentBase(),"nrg.png"));
+		bsprites[2]=getImage(new URL(getDocumentBase(),"sanchez.png"));
+		bsprites[3]=getImage(new URL(getDocumentBase(),"ultra.png"));
+		bsprites[4]=getImage(new URL(getDocumentBase(),"noodle.png"));
+		bsprites[5]=getImage(new URL(getDocumentBase(),"psj.png"));
+		bsprites[6]=getImage(new URL(getDocumentBase(),"fultra.png"));
+		bsprites[7]=getImage(new URL(getDocumentBase(),"faggio.png"));
+		bsprites[8]=getImage(new URL(getDocumentBase(),"green.png"));
 	} catch (MalformedURLException e) {
 		e.printStackTrace();
 	}
@@ -103,9 +117,11 @@ public void Update(double elapsedTime, double frameTime) {
 	if(scounter%10==0) {
 		if(tim%2==0 && p1>40) {
 			cars.add(new Car(random.nextInt(100),random.nextInt(800),random.nextInt(6),10));
+			cbirth.put(cars.size(), m_time);
 		}
 		if(tim%4==0 && p2>60) {
-			bikes.add(new Bike(1000+random.nextInt(100),random.nextInt(800),random.nextInt(4),10));
+			bikes.add(new Bike(1000+random.nextInt(100),random.nextInt(800),random.nextInt(9),10));
+			bbirth.put(bikes.size(), m_time);
 		}
 		scounter=0;
 	}
