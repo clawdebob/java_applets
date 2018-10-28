@@ -25,6 +25,7 @@ offScreenGraphics.drawImage(pic,x,y,this);
 }
 /* Каждый раз, когда апплет вызывает метод drawImage(), он создает поток, вызывающий метод imageUpdate(), который можно переопределить в классе апплета и использовать для того, чтобы определить, какая часть изображения загружена в память.*/
 public void update(Graphics g) {
+	//paint(g);
     g.drawImage(pic, 0, 0, this);
 }
 }
