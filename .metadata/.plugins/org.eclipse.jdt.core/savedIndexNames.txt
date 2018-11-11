@@ -1,9 +1,2 @@
-INDEX VERSION 1.131+/home/andrew/eclipse-workspace/.metadata/.plugins/org.eclipse.jdt.core
-2561174371.index
-402349466.index
-4093233348.index
-332632342.index
-646308851.index
+INDEX VERSION 1.131+/home/andrew/git/java_applets/.metadata/.plugins/org.eclipse.jdt.core
 3408485364.index
-231828979.index
-2480653025.index

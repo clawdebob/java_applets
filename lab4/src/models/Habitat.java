@@ -23,6 +23,7 @@ private Image []sprites=new Image [6];
 private Image []bsprites=new Image [9];
 private ArrayList<Car> cars=new ArrayList<Car>();
 private ArrayList<Bike> bikes=new ArrayList<Bike>();
+private ArrayList<Thread> multit = new ArrayList<Thread>();
 private HashMap<Integer,Double> bbirth = new HashMap<Integer,Double>();
 private HashMap<Integer,Double> cbirth = new HashMap<Integer,Double>();
 private static int scounter=0;
@@ -75,6 +76,15 @@ public Habitat() {
 			m_timer.schedule(up, 0, 100);
 			repaint(); 
 			break;
+		case KeyEvent.VK_C:
+		try {
+			Thread.sleep(5000);
+		} catch (InterruptedException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+			repaint(); 
+			break;
 		}
 	}
 	};
@@ -116,11 +126,15 @@ public void Update(double elapsedTime, double frameTime) {
 	scounter++;
 	if(scounter%10==0) {
 		if(tim%2==0 && p1>40) {
-			cars.add(new Car(random.nextInt(100),random.nextInt(800),random.nextInt(6),10));
+			Car ne = new Car(random.nextInt(100),random.nextInt(800),random.nextInt(6),10);
+			cars.add(ne);
+			multit.add(new Thread(ne));
 			cbirth.put(cars.size(), m_time);
 		}
 		if(tim%4==0 && p2>60) {
-			bikes.add(new Bike(1000+random.nextInt(100),random.nextInt(800),random.nextInt(9),10));
+			Bike ne = new Bike(1000+random.nextInt(100),random.nextInt(800),random.nextInt(9),10);
+			bikes.add(ne);
+			multit.add(new Thread(ne));
 			bbirth.put(bikes.size(), m_time);
 		}
 		scounter=0;
@@ -143,7 +157,9 @@ public void paint(Graphics g) {
 		offScreenGraphics.drawString(str, 15, 15);
 	}
 	for(int c=0;c<cars.size();c++) {
-		cars.get(c).action();
+		Thread cart = new Thread(cars.get(c));
+		cart.start();
+		//cars.get(c).action();
 		if(cars.get(c).getX()<2000) {
 			offScreenGraphics.drawImage(sprites[cars.get(c).getType()],cars.get(c).getX(),cars.get(c).getY(),this);
 		} else {
@@ -151,7 +167,9 @@ public void paint(Graphics g) {
 		}
 	}
 	for(int c=0;c<bikes.size();c++) {
-		bikes.get(c).action();
+		Thread biket = new Thread(bikes.get(c));
+		biket.start();
+		//bikes.get(c).action();
 		if(cars.get(c).getX()>0) {
 			offScreenGraphics.drawImage(bsprites[bikes.get(c).getType()],bikes.get(c).getX(),bikes.get(c).getY(),this);
 		} else {

@@ -2,7 +2,7 @@ package models;
 
 import java.awt.*;
 
-public abstract class Vehicle {
+public abstract class Vehicle{
 	public Vehicle(int x, int y,int type, int speed) {
 		super();
 		this.type = type;
