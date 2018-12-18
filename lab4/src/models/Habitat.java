@@ -1,19 +1,39 @@
 package models;
 import java.applet.Applet;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.net.MalformedURLException;
+import java.net.Socket;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PipedReader;
+import java.io.PipedWriter;
+import java.io.Reader;
+import java.io.Writer;
+
 @SuppressWarnings({ "serial", "deprecation" })
 public class Habitat extends Applet{
 private Timer m_timer = new Timer();
+private boolean pressed = false;
+private Console con = new Console();
 private boolean m_runViaFrame = false;
 private double m_time = 0;
 private Image offScreenImage;
@@ -26,6 +46,7 @@ private ArrayList<Bike> bikes=new ArrayList<Bike>();
 private ArrayList<Thread> multit = new ArrayList<Thread>();
 private HashMap<Integer,Double> bbirth = new HashMap<Integer,Double>();
 private HashMap<Integer,Double> cbirth = new HashMap<Integer,Double>();
+private static PipedReader reader = new PipedReader();
 private static int scounter=0;
 private boolean active=true;
 private class Updater extends TimerTask {
@@ -45,7 +66,12 @@ private class Updater extends TimerTask {
 		long currentTime = System.currentTimeMillis();
 		double elapsed = (currentTime - m_startTime) / 1000.0;
 		double frameTime = (m_lastTime - m_startTime) / 1000.0;
-		m_applet.Update(elapsed, frameTime);
+		try {
+			m_applet.Update(elapsed, frameTime);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		m_lastTime = currentTime;
 	}
 }
@@ -57,6 +83,16 @@ public Habitat() {
 	System.out.println(e);
 	int keyCode = e.getKeyCode();
 	switch(keyCode) {
+		case KeyEvent.VK_Z:
+			pressed= true;
+			con.setVisible(true);
+			try {
+				reader.connect(con.writer);
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		break;
 		case KeyEvent.VK_T:
 			timerhidden=timerhidden ? false : true;
 			repaint(); 
@@ -71,6 +107,57 @@ public Habitat() {
 				System.out.println("Мотоцикл №"+c+" Время содания:"+bbirth.get(c));
 			}
 			repaint(); 
+			break;
+		case KeyEvent.VK_S:
+			String host = "localhost";
+			int port = 3333;
+			Socket sock = null;
+			try {
+				sock = new Socket(host, port);
+			} catch (IOException e2) {
+				// TODO Auto-generated catch block
+				e2.printStackTrace();
+			}
+		DataOutputStream outStream;
+		try {
+			outStream = new DataOutputStream(sock.getOutputStream());
+			DataInputStream inStream = new DataInputStream(sock.getInputStream());
+			Gson gson = new GsonBuilder().create();
+			State st = new State(cars.size(),bikes.size());
+			outStream.writeUTF(gson.toJson(st));
+		} catch (IOException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		}
+			break;
+		case KeyEvent.VK_R:
+			host = "localhost";
+			port = 3333;
+			sock = null;
+			try {
+				sock = new Socket(host, port);
+			} catch (IOException e2) {
+				// TODO Auto-generated catch block
+				e2.printStackTrace();
+			}
+		try {
+			outStream = new DataOutputStream(sock.getOutputStream());
+			DataInputStream inStream = new DataInputStream(sock.getInputStream());
+			Gson gson = new GsonBuilder().create();
+			outStream.writeUTF("reload");
+			setVisible(false);
+			cars.clear();
+			bikes.clear();
+			Thread.sleep(2000);
+			setVisible(true);
+			System.out.println(inStream.readUTF());
+		} catch (IOException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		} catch (InterruptedException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 			break;
 		case KeyEvent.VK_B:
 			m_timer.schedule(up, 0, 100);
@@ -118,7 +205,87 @@ public void init() {
 	}
 }
 private void Init() {}
-public void Update(double elapsedTime, double frameTime) {
+public void Update(double elapsedTime, double frameTime) throws IOException {
+	int frequency = 40;
+	if(pressed) {
+		if(con.str) {
+			char []com = new char [con.len];
+			
+			try {
+				reader.read(com,0,con.len);
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			String fin = new String(com);
+			System.out.println(fin);
+			con.str=false;
+			if(fin.contains("frequency")) {
+				try {
+				String val = fin.split("\\s+")[1];
+				frequency = Integer.parseInt(val);
+				con.log("bikes frequency changed to:" + val);
+				}catch(Exception e1){
+					con.log("Parsing exeption!!!");
+				}
+			}
+			else {
+				con.log("unknown command");
+			}
+		}
+		if(con.sv) {
+			char []com = new char [con.len];
+			
+			try {
+				reader.read(com,0,con.len);
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			String fin = new String(com);
+			State st = new State(cars.size(),bikes.size());
+			con.sv=false;
+			System.out.println(fin);
+			try (Writer writer = new FileWriter(fin)) {
+			    Gson gson = new GsonBuilder().create();
+			    gson.toJson(st, writer);
+			    writer.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		if(con.ld) {
+			//m_timer.cancel();
+			char []com = new char [con.len];
+			
+			try {
+				reader.read(com,0,con.len);
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			String fin = new String(com);
+			con.ld=false;
+			System.out.println(fin);
+			Reader reader;
+			try {
+				reader = new FileReader(fin);
+				State ps = new Gson().fromJson(reader, State.class);
+				cars.clear();
+				bikes.clear();
+				for(int c=0;c<ps.cars;c++) {
+					cars.add(new Car(2100,2100,2100,10));
+				}
+				for(int c=0;c<ps.bikes;c++) {
+					bikes.add(new Bike(0,0,0,10));
+				}
+			} catch (FileNotFoundException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}
+	}
 	m_time = elapsedTime;
 	int tim = (int)m_time;
 	float p1=random.nextInt(100);
@@ -131,7 +298,7 @@ public void Update(double elapsedTime, double frameTime) {
 			multit.add(new Thread(ne));
 			cbirth.put(cars.size(), m_time);
 		}
-		if(tim%4==0 && p2>60) {
+		if(tim%4==0 && p2>100 - frequency) {
 			Bike ne = new Bike(1000+random.nextInt(100),random.nextInt(800),random.nextInt(9),10);
 			bikes.add(ne);
 			multit.add(new Thread(ne));
